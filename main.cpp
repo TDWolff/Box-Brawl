@@ -1,8 +1,15 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
+#include <filesystem>
+#include <unistd.h>
 
 int main() {
+    // Set the working directory to the game root
+    if (chdir("/Users/torinwolff/Documents/GitHub/Box-Brawl/BoxBrawl") != 0) {
+        std::cerr << "Error: Failed to change working directory!" << std::endl;
+        return -1;
+    }
     // Enable antialiasing
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8; // Higher values improve quality but may reduce performance
@@ -34,15 +41,39 @@ int main() {
     player.setOrigin(0.5f, 0.5f); // Center the origin for rotation
     player.setPosition(mapSize / 2, mapSize / 2); // Centered on the map
 
-    // Enable smooth edges for textures
-    sf::Texture::getMaximumSize(); // Only required if you're using textured shapes later
-
     // Direction indicator
     sf::VertexArray frontLine(sf::Lines, 2);
 
     // View setup (30x30 units visible)
-    sf::View view(sf::FloatRect(0, 0, 30, 30));
-    window.setView(view);
+    sf::View gameView(sf::FloatRect(0, 0, 30, 30)); // Game view (visible world)
+    window.setView(gameView);
+
+    // Health display
+    int health = 100;
+    sf::Font font;
+    std::string fontPath;
+
+    // Get the current working directory and construct the font path dynamically
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    fontPath = (currentPath / "Contents" / "Resources" / "fonts" / "Pulang.ttf").string();
+
+    if (!font.loadFromFile(fontPath)) {
+        std::cerr << "Error loading font: " << fontPath << std::endl;
+        std::cout << "Current Path: " << currentPath << std::endl;
+        return -1;
+    }
+
+    // Health text setup with scaled size
+    sf::Text healthText;
+    healthText.setFont(font);
+    healthText.setString("Health: " + std::to_string(health));
+    healthText.setCharacterSize(18); // Reduced from 24 to 12
+    healthText.setFillColor(sf::Color::Black);
+    healthText.setScale(0.05f, 0.05f); // Scale down the text to match game units
+
+
+    // Movement state
+    bool movingUp = false, movingDown = false, movingLeft = false, movingRight = false;
 
     // Clock for consistent movement
     sf::Clock clock;
@@ -53,6 +84,46 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            // Key press events
+            if (event.type == sf::Event::KeyPressed) {
+                switch (event.key.code) {
+                    case sf::Keyboard::W:
+                        movingUp = true;
+                        break;
+                    case sf::Keyboard::S:
+                        movingDown = true;
+                        break;
+                    case sf::Keyboard::A:
+                        movingLeft = true;
+                        break;
+                    case sf::Keyboard::D:
+                        movingRight = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // Key release events
+            if (event.type == sf::Event::KeyReleased) {
+                switch (event.key.code) {
+                    case sf::Keyboard::W:
+                        movingUp = false;
+                        break;
+                    case sf::Keyboard::S:
+                        movingDown = false;
+                        break;
+                    case sf::Keyboard::A:
+                        movingLeft = false;
+                        break;
+                    case sf::Keyboard::D:
+                        movingRight = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         // Delta time
@@ -61,10 +132,10 @@ int main() {
         // Player movement
         float speed = 5.0f; // Adjust speed to a reasonable value
         sf::Vector2f movement(0.f, 0.f);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) movement.y -= speed * deltaTime;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) movement.y += speed * deltaTime;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) movement.x -= speed * deltaTime;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) movement.x += speed * deltaTime;
+        if (movingUp) movement.y -= speed * deltaTime;
+        if (movingDown) movement.y += speed * deltaTime;
+        if (movingLeft) movement.x -= speed * deltaTime;
+        if (movingRight) movement.x += speed * deltaTime;
 
         // Apply movement and clamp within bounds
         sf::Vector2f newPosition = player.getPosition() + movement;
@@ -88,9 +159,18 @@ int main() {
                                     2.f; // Length of 2 units
         frontLine[1] = sf::Vertex(frontTip, sf::Color::Red);
 
-        // Update the view to follow the player
-        view.setCenter(player.getPosition());
-        window.setView(view);
+        // Update the game view to follow the player (for movement and rotation)
+        gameView.setCenter(player.getPosition());
+        window.setView(gameView);
+
+        // Update health display and position it relative to view
+        healthText.setString("Health: " + std::to_string(health));
+        sf::Vector2f viewCenter = gameView.getCenter();
+        sf::Vector2f viewSize = gameView.getSize();
+        healthText.setPosition(
+            viewCenter.x - viewSize.x/2 + 0.5f,     // Left side of view (unchanged)
+            viewCenter.y + viewSize.y/2 - 1.5f      // Bottom of view, offset up by 1.5 units
+        );
 
         // Rendering
         window.clear();
@@ -98,6 +178,8 @@ int main() {
         window.draw(gridLines);
         window.draw(player);
         window.draw(frontLine);
+        window.draw(healthText);
+
         window.display();
     }
 

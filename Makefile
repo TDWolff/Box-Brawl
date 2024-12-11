@@ -1,15 +1,15 @@
 # Compiler
-CXX = g++
+CXX = clang++
 
 # Source files
 SRC = main.cpp
 
 # Targets
 TARGET_MACOS = BoxBrawl
-APP_NAME = BoxBrawl.app
+APP_NAME = BoxBrawl
 APP_DIR = $(APP_NAME)/Contents
 MACOS_DIR = $(APP_DIR)/MacOS
-RESOURCES_DIR = $(APP_DIR)/Resources
+RESOURCES_DIR = $(APP_DIR)/Resources/fonts
 
 # macOS build settings
 SDKROOT = $(shell xcrun --sdk macosx --show-sdk-path)
@@ -23,30 +23,16 @@ all: macos
 macos: $(APP_NAME)
 
 $(APP_NAME): $(MACOS_DIR)/$(TARGET_MACOS)
+	@echo "macOS application bundle created."
 
 $(MACOS_DIR)/$(TARGET_MACOS): $(SRC)
 	# Create the app directory structure
 	mkdir -p $(MACOS_DIR) $(RESOURCES_DIR)
-	# Compile the binary
+	# Compile the source code
 	$(CXX) $(CXXFLAGS_MACOS) -o $(MACOS_DIR)/$(TARGET_MACOS) $(SRC) $(LDFLAGS_MACOS)
-	# Copy resources
-	cp ./icon.png $(RESOURCES_DIR)/icon.png
-	# Create the Info.plist file
-	@echo "Creating Info.plist..."
-	@echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $(APP_DIR)/Info.plist
-	@echo "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" >> $(APP_DIR)/Info.plist
-	@echo "<plist version=\"1.0\">" >> $(APP_DIR)/Info.plist
-	@echo "<dict>" >> $(APP_DIR)/Info.plist
-	@echo "  <key>CFBundleExecutable</key>" >> $(APP_DIR)/Info.plist
-	@echo "  <string>$(TARGET_MACOS)</string>" >> $(APP_DIR)/Info.plist
-	@echo "  <key>CFBundleName</key>" >> $(APP_DIR)/Info.plist
-	@echo "  <string>BoxBrawl</string>" >> $(APP_DIR)/Info.plist
-	@echo "  <key>CFBundleIconFile</key>" >> $(APP_DIR)/Info.plist
-	@echo "  <string>icon.png</string>" >> $(APP_DIR)/Info.plist
-	@echo "</dict>" >> $(APP_DIR)/Info.plist
-	@echo "</plist>" >> $(APP_DIR)/Info.plist
-	@echo "$(APP_NAME) created successfully!"
+	# Copy resources (e.g., fonts)
+	cp Pulang.ttf $(APP_NAME)/Contents/Resources/fonts
 
-# Clean build artifacts
+# Clean target
 clean:
-	rm -rf $(TARGET_MACOS) $(APP_NAME)
+	rm -rf $(APP_NAME)
