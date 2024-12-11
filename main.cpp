@@ -83,6 +83,9 @@ int main() {
     // Clock for consistent movement
     sf::Clock clock;
 
+    // Flag for 'E' key press
+    bool ePressed = false;
+
     while (window.isOpen()) {
         // Handle events
         sf::Event event;
@@ -105,6 +108,12 @@ int main() {
                     case sf::Keyboard::D:
                         movingRight = true;
                         break;
+                    case sf::Keyboard::E:
+                        if (!ePressed) {
+                            health -= 10; // Only reduce health once
+                            ePressed = true; // Set flag to true
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -124,6 +133,9 @@ int main() {
                         break;
                     case sf::Keyboard::D:
                         movingRight = false;
+                        break;
+                    case sf::Keyboard::E:
+                        ePressed = false; // Reset flag when key is released
                         break;
                     default:
                         break;
@@ -168,12 +180,22 @@ int main() {
         gameView.setCenter(player.getPosition());
         window.setView(gameView);
 
+        // Health check
+        if (health <= 0) {
+            health = 100;  // Reset health
+            // tp the player to the center of the map
+            player.setPosition(mapSize / 2, mapSize / 2);
+        }
+
+        // Prevent health from going below 0
+        health = std::max(0, health);
+
         healthText.setString("Health: " + std::to_string(health));
         sf::Vector2f viewCenter = gameView.getCenter();
         sf::Vector2f viewSize = gameView.getSize();
         sf::Vector2f healthPosition(
-            viewCenter.x - viewSize.x/2 + 0.5f,
-            viewCenter.y + viewSize.y/2 - 1.5f
+            viewCenter.x - viewSize.x / 2 + 0.5f,
+            viewCenter.y + viewSize.y / 2 - 1.5f
         );
         
         healthText.setPosition(healthPosition);
