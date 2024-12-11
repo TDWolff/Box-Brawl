@@ -67,10 +67,15 @@ int main() {
     sf::Text healthText;
     healthText.setFont(font);
     healthText.setString("Health: " + std::to_string(health));
-    healthText.setCharacterSize(18); // Reduced from 24 to 12
-    healthText.setFillColor(sf::Color::Black);
-    healthText.setScale(0.05f, 0.05f); // Scale down the text to match game units
+    healthText.setCharacterSize(18);
+    healthText.setFillColor(sf::Color::White); // Changed to white
+    healthText.setScale(0.05f, 0.05f);
 
+    // Create background for health text
+    sf::RectangleShape healthBackground;
+    healthBackground.setFillColor(sf::Color(100, 100, 100, 200)); // Grey with transparency
+    // Size will be updated in the game loop based on text bounds
+    healthBackground.setScale(0.05f, 0.05f); // Match text scaling
 
     // Movement state
     bool movingUp = false, movingDown = false, movingLeft = false, movingRight = false;
@@ -163,14 +168,20 @@ int main() {
         gameView.setCenter(player.getPosition());
         window.setView(gameView);
 
-        // Update health display and position it relative to view
         healthText.setString("Health: " + std::to_string(health));
         sf::Vector2f viewCenter = gameView.getCenter();
         sf::Vector2f viewSize = gameView.getSize();
-        healthText.setPosition(
-            viewCenter.x - viewSize.x/2 + 0.5f,     // Left side of view (unchanged)
-            viewCenter.y + viewSize.y/2 - 1.5f      // Bottom of view, offset up by 1.5 units
+        sf::Vector2f healthPosition(
+            viewCenter.x - viewSize.x/2 + 0.5f,
+            viewCenter.y + viewSize.y/2 - 1.5f
         );
+        
+        healthText.setPosition(healthPosition);
+
+        // Update health background size and position
+        sf::FloatRect textBounds = healthText.getLocalBounds();
+        healthBackground.setSize(sf::Vector2f(textBounds.width + 20, textBounds.height + 10)); // Add padding
+        healthBackground.setPosition(healthPosition.x - 0.5f, healthPosition.y - 0.25f); // Offset slightly to center text
 
         // Rendering
         window.clear();
@@ -178,7 +189,8 @@ int main() {
         window.draw(gridLines);
         window.draw(player);
         window.draw(frontLine);
-        window.draw(healthText);
+        window.draw(healthBackground); // Draw background first
+        window.draw(healthText);      // Draw text on top
 
         window.display();
     }
