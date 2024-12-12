@@ -2,3 +2,5 @@ BoxBrawl
 BoxBrawl.app
 .DS_Store
 .env
+testing.dSYM
+testing

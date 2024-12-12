@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "enter program name, for example ${workspaceFolder}/a.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "C/C++: clang++ build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",  // This tells VS Code to launch the program
+            "program": "${fileDirname}/${fileBasenameNoExtension}",  // Program to run
+            "args": [],  // Arguments for the program
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": true,  // Set to true if you want an external console for output
+            "MIMode": "lldb",
+            "preLaunchTask": "C/C++: clang++ build active file"  // Ensure the build task runs first
+        }
+    ]
+}
